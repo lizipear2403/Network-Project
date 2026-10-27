@@ -2,20 +2,27 @@
 # 使用邻接链表
 
 # 此为edges 示例
-example = {
-        1:{2,3} ,
-        2:{3,4,1} ,
-        3:{2},
-        4:{2}
-        }
-
+# example = {
+#         1:{2,3} ,
+#         2:{3,4,1} ,
+#         3:{2},
+#         4:{2}
+#         }
+#
 
 class Graph : 
-    def __init__(self, weighted = False) -> None:
+    def __init__(self,nodes = set() , edges = {}, directed = True, weights = {} ,  weighted = False) -> None:
         # 创建空
-        self.__nodes__ = set()
-        self.__edges__ = {}
-        self.__weights__ = {}
+        # self.__nodes__ = if   nodes : then   nodes  else : set() 
+        # self.__edges__ = if   edges : then   edges  else :  {}
+        # if weights and weighted : 
+        #     self.__weights__ = {}
+        #     # 产生权重
+        # else： 
+        self.__nodes__ = nodes
+        self.__edges__ = edges 
+        # self,__weights__ = weights 
+        #     不一致， 直接崩溃
         self.__directed__ = True
         self.__weighted__ = weighted
         # __weighted__ 应由传入时选择，且只能由有权图变为无权图的方法， 我已注释掉weighted方法
@@ -127,6 +134,17 @@ class Graph :
         else : 
             # 返回None
             return None
+        
+
+    def to_node(self, end) : 
+        # 获取指向end的所有节点， end不在图中，返回None，end没有指向的节点则返回空集合
+        # 有权图：返回二元组集合， 第一个元素是起点，第二个元素是权
+        # 无权图：返回节点集合
+        
+    def from_node(self, start) :
+        # 获取从start开始的所有节点， start不在图中，返回None，start没有指向的节点则返回空集合
+        # 有权图：返回二元组集合， 第一个元素是终点，第二个元素是权
+        # 无权图：返回节点集合
 
     def add_edge(self,  edge , weight = None ) -> None : 
 # 必须先于任何写操作校验，崩的时候图里不能留下半条边
