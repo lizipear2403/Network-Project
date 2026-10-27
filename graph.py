@@ -10,22 +10,22 @@
 #         }
 #
 
-class Graph : 
-    def __init__(self,nodes = set() , edges = {}, directed = True, weights = {} ,  weighted = False) -> None:
-        # 创建空
-        # self.__nodes__ = if   nodes : then   nodes  else : set() 
-        # self.__edges__ = if   edges : then   edges  else :  {}
-        # if weights and weighted : 
-        #     self.__weights__ = {}
-        #     # 产生权重
-        # else： 
-        self.__nodes__ = nodes
-        self.__edges__ = edges 
-        # self,__weights__ = weights 
-        #     不一致， 直接崩溃
-        self.__directed__ = True
+class Graph :
+    def __init__(self, nodes = None , edges = None, directed = True, weights = None ,  weighted = False) -> None:
+        # 值拷贝：不共享调用方的容器，也避免可变默认参数导致的实例间污染
+        self.__nodes__ = set(nodes) if nodes is not None else set()
+        self.__edges__ = {s: set(ends) for s, ends in edges.items()} if edges is not None else {}
+
+        self.__directed__ = directed
+        if weighted :
+            if weights == None :
+                raise RuntimeError("weights 为空且 weighted 矛盾")
+            else :
+                self.__weights__ = dict(weights)
+                # 现在检查是否对所有边都有权重定义，
+                # 没有权重定义的默认设0
+
         self.__weighted__ = weighted
-        # __weighted__ 应由传入时选择，且只能由有权图变为无权图的方法， 我已注释掉weighted方法
     def undirected(self) -> None : 
         # 将图置为undirected 
         # 遍历一次edges , 创建边集合：二元组集合， 并且根据集合重建__edges__
@@ -103,8 +103,9 @@ class Graph :
             self.__edges__[start].discard(node)
             if not self.__edges__[start]:
                 del self.__edges__[start]
-        for key in [k for k in self.__weights__ if node in k]:
-            del self.__weights__[key]
+        if self.__weighted__:
+            for key in [k for k in self.__weights__ if node in k]:
+                del self.__weights__[key]
     def delete_edge(self,edge) -> None: 
         # 删除边
         # 检查__directed__ , 同add_edge
@@ -112,10 +113,12 @@ class Graph :
             raise ValueError("edge 必须是二元组 (start, end)")
         start, end = edge
         self.__edges__.get(start, set()).discard(end)
-        self.__weights__.pop((start, end), None)
+        if self.__weighted__:
+            self.__weights__.pop((start, end), None)
         if not self.__directed__:
             self.__edges__.get(end, set()).discard(start)
-            self.__weights__.pop((end, start), None)
+            if self.__weighted__:
+                self.__weights__.pop((end, start), None)
         # 删空的目标集合不要留下空key
         for node in (start, end):
             if node in self.__edges__ and not self.__edges__[node]:
@@ -140,11 +143,30 @@ class Graph :
         # 获取指向end的所有节点， end不在图中，返回None，end没有指向的节点则返回空集合
         # 有权图：返回二元组集合， 第一个元素是起点，第二个元素是权
         # 无权图：返回节点集合
+        if end not in self.__nodes__:
+            return None
+        result = set()
+        for start, ends in self.__edges__.items():
+            if end not in ends:
+                continue
+            if self.__weighted__:
+                result.add((start, self.__weights__.get((start, end))))
+            else:
+                result.add(start)
+        return result
         
     def from_node(self, start) :
         # 获取从start开始的所有节点， start不在图中，返回None，start没有指向的节点则返回空集合
         # 有权图：返回二元组集合， 第一个元素是终点，第二个元素是权
         # 无权图：返回节点集合
+        if start not in self.__nodes__:
+            return None
+        ends = self.__edges__.get(start, set())
+        if not ends:
+            return set()
+        if self.__weighted__:
+            return {(end, self.__weights__.get((start, end))) for end in ends}
+        return set(ends)
 
     def add_edge(self,  edge , weight = None ) -> None : 
 # 必须先于任何写操作校验，崩的时候图里不能留下半条边
@@ -189,4 +211,5 @@ class Graph :
 # 无权 -> add_node , delete 相关无误，-> add_edge  若传入权重直接崩溃
 # 有权 -> add_node ， delete正常 -> add_edge 无权重直接报错
 # 只能由有权图变为无权图， 无权图不得变为有权图 ，相关操作若实质性需要再写外部函数，不得放入类方法中
+# init 创建 -> 传入weights时保证weights覆盖所有已存在的edges 如果有edges没有定义weight应崩溃
 
