@@ -1,11 +1,5 @@
 import graph
 
-e = {
-        1 : {2},
-        2 : {3} ,
-        3 : {4, 5} ,
-        }
-
 def pre_process(g : graph.Graph ,  start , end) -> graph.Graph :
     # start / end 不在图中，无法剪枝，直接崩溃
     for node in (start, end):
@@ -64,9 +58,52 @@ def pre_process(g : graph.Graph ,  start , end) -> graph.Graph :
 
     return res
     
+def find_all_path(start,  end , g : graph.Graph) -> list[list]:
+    # 传入已经预处理的图，并且找到起点和重点之间的所有路径
+    # 预处理已经将所有点处理完毕， 每个点至少在一个路径上
+    # 回溯dfs
+    allpath = []
+    # dfs from start
+    # find end -> 添加一条路径
+    # -> 返回上一个节点 -> 选择不同的节点进行dfs
+    # -> 找到end 添加路径 -> 返回
+    # 以此类推直到返回到start
+    # 注意添加的路径为完整节点顺序列表
+    # start 到不了 end 时 pre_process 返回空图，视为零条路径，直接返回空列表
+    if not g.__nodes__:
+        return []
+    if start not in g.__nodes__ or end not in g.__nodes__:
+        raise ValueError(f"节点 {start if start not in g.__nodes__ else end} 不在图中")
 
-#
-# g = graph.Graph() 
-# g.add_node(1)
-# g.add_edge((1,2))
-# print(g) 
+    def neighbors(node) -> set:
+        # from_node 在加权图下返回 (节点, 权) 二元组，找路径只关心节点本身
+        ns = g.from_node(node)
+        return {n[0] if isinstance(n, tuple) else n for n in ns}
+
+    path = [start]
+    on_path = {start}
+
+    def dfs(cur) :
+        # 到达 end：当前栈中 path 就是一条完整节点顺序列表，拷贝存入
+        if cur == end:
+            allpath.append(list(path))
+            return
+        # 选择不同的节点进行dfs；on_path 剪掉环，保证路径是简单路径
+        for nxt in neighbors(cur):
+            if nxt in on_path:
+                continue
+            path.append(nxt)
+            on_path.add(nxt)
+            dfs(nxt)
+            # 回溯：返回上一个节点，撤销选择
+            path.pop()
+            on_path.discard(nxt)
+
+    dfs(start)
+    return allpath
+
+def find_with_preprocess(g , s ,e ) : 
+    ng = pre_process(g, s, e) 
+    return find_all_path(s, e, ng)
+
+

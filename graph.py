@@ -1,15 +1,6 @@
 # 定义图对象
 # 使用邻接链表
 
-# 此为edges 示例
-# example = {
-#         1:{2,3} ,
-#         2:{3,4,1} ,
-#         3:{2},
-#         4:{2}
-#         }
-#
-
 class Graph :
     def __init__(self, nodes = None , edges = None, directed = True, weights = None ,  weighted = False) -> None:
         # 值拷贝：不共享调用方的容器，也避免可变默认参数导致的实例间污染
@@ -24,6 +15,11 @@ class Graph :
                 self.__weights__ = dict(weights)
                 # 现在检查是否对所有边都有权重定义，
                 # 没有权重定义的默认设0
+                # 仅允许在 __init__ 中补默认值，其余任何写路径都不得隐性赋默认值
+                for start, ends in self.__edges__.items():
+                    for end in ends:
+                        if (start, end) not in self.__weights__:
+                            self.__weights__[(start, end)] = 0
 
         self.__weighted__ = weighted
     def undirected(self) -> None : 
@@ -206,10 +202,4 @@ class Graph :
         # 将__weighted__ 置为false 但是不抹除已有的权重信息
         self.__weighted__ = False
         
-
-# 流程一致性 -> 只能由__init__创建对象 ->
-# 无权 -> add_node , delete 相关无误，-> add_edge  若传入权重直接崩溃
-# 有权 -> add_node ， delete正常 -> add_edge 无权重直接报错
-# 只能由有权图变为无权图， 无权图不得变为有权图 ，相关操作若实质性需要再写外部函数，不得放入类方法中
-# init 创建 -> 传入weights时保证weights覆盖所有已存在的edges 如果有edges没有定义weight应崩溃
 
