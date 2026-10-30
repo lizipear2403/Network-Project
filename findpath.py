@@ -9,21 +9,12 @@ def pre_process(g : graph.Graph ,  start , end) -> graph.Graph :
     # 先从start进行BFS，将访问到的所有节点加入res
     # 得到from_start
 
-    def neighbors(node) -> set:
-        # from_node / to_node 在加权图下返回 (节点, 权) 二元组，剪枝只关心节点本身
-        ns = g.from_node(node)
-        return {n[0] if isinstance(n, tuple) else n for n in ns}
-
-    def predecessors(node) -> set:
-        ns = g.to_node(node)
-        return {n[0] if isinstance(n, tuple) else n for n in ns}
-
     # 正向BFS：start 能到达的所有节点（含 start 自身）
     from_start = {start}
     queue = [start]
     while queue:
         cur = queue.pop(0)
-        for nxt in neighbors(cur):
+        for nxt in g.neighbors(cur):
             if nxt not in from_start:
                 from_start.add(nxt)
                 queue.append(nxt)
@@ -35,7 +26,7 @@ def pre_process(g : graph.Graph ,  start , end) -> graph.Graph :
     queue = [end]
     while queue:
         cur = queue.pop(0)
-        for prev in predecessors(cur):
+        for prev in g.reverse_neighbors(cur):
             if prev in from_start and prev not in to_end:
                 to_end.add(prev)
                 queue.append(prev)
@@ -75,11 +66,11 @@ def find_all_path(start,  end , g : graph.Graph) -> list[list]:
     if start not in g.__nodes__ or end not in g.__nodes__:
         raise ValueError(f"节点 {start if start not in g.__nodes__ else end} 不在图中")
 
-    def neighbors(node) -> set:
-        # from_node 在加权图下返回 (节点, 权) 二元组，找路径只关心节点本身
-        ns = g.from_node(node)
-        return {n[0] if isinstance(n, tuple) else n for n in ns}
-
+    # def neighbors(node) -> set:
+    #     # from_node 在加权图下返回 (节点, 权) 二元组，找路径只关心节点本身
+    #     ns = g.from_node(node)
+    #     return {n[0] if isinstance(n, tuple) else n for n in ns}
+    #
     path = [start]
     on_path = {start}
 
@@ -88,8 +79,9 @@ def find_all_path(start,  end , g : graph.Graph) -> list[list]:
         if cur == end:
             allpath.append(list(path))
             return
-        # 选择不同的节点进行dfs；on_path 剪掉环，保证路径是简单路径
-        for nxt in neighbors(cur):
+        # 选择不同的节点进行dfs；
+        # on_path 剪掉环，保证路径是简单路径
+        for nxt in g.neighbors(cur):
             if nxt in on_path:
                 continue
             path.append(nxt)

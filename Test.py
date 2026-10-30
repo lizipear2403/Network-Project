@@ -11,6 +11,12 @@ import random
 
 i = 0 
 # 创建一个在TestFiles/下的文件 命名随循环变量递增，格式Test-i
+
+
+# 测试脚本无法足够充分的测试图, 原因是无法生成具有足够路径复杂度的图
+
+
+
 while i < 1000: 
     # 生成一个1-10000的随机数 k 
     
@@ -35,6 +41,10 @@ while i < 1000:
     path_n = list( networkx.all_simple_paths(g_nx , source= s_1 , target= e_1))
     path_l.sort()
     path_n.sort()
+
+    if ( len(path_n) >= 5) : 
+        print(path_l)
+        print(path_n)
 
     assert(path_l == path_n)
     i = i + 1  
