@@ -6,49 +6,38 @@ import networkx
 import graph 
 import findpath
 import random
+import time
+
+# n = random.randint(1 , 1000)
+n  = 23
+c = 0 
+time_l = 0 
+time_n = 0 
+
+while c < 10 : 
+    p =  0.17 
+    print(n , p)
+    # 生成ER随机图
+    g = networkx.erdos_renyi_graph(  n, p  , directed=True) 
+    print()
+    g_ = graph.Graph(nodes=g.nodes())
+    for edge in g.edges(): 
+        g_.add_edge((edge))
+        # print(g_)
+
+    s = random.choice(list(g_.get_all_nodes()))
+    e = random.choice(list(g_.get_all_nodes()))
 
 
+    t1 = time.time()
+    l_ = sorted( findpath.find_with_preprocess( g_, s,e ))
+    t2 = time.time()
+    l = sorted( networkx.all_simple_paths(g, source=s , target=e)  )
+    t3 = time.time()
+    time_l += t2 - t1 
+    time_n += t3 - t2 
 
-i = 0 
-# 创建一个在TestFiles/下的文件 命名随循环变量递增，格式Test-i
-
-
-# 测试脚本无法足够充分的测试图, 原因是无法生成具有足够路径复杂度的图
-
-
-
-while i < 1000: 
-    # 生成一个1-10000的随机数 k 
-    
-    g_local = graph.Graph() # 有向无权图
-    g_nx = networkx.DiGraph()
-    max = random.randint(1,10000) 
-
-    s_1 = random.randint(1,max) 
-    e_1 = random.randint(1,max) 
-
-    for count  in range(1, max):
-
-        g_nx.add_edge(s_1,e_1) 
-        g_local.add_edge((s_1,e_1))
-
-        s = random.randint(1,max) 
-        e = random.randint(1,max) 
-        g_nx.add_edge(s,e) 
-        g_local.add_edge((s,e))
-    
-    path_l = findpath.find_with_preprocess( g_local, s_1, e_1) 
-    path_n = list( networkx.all_simple_paths(g_nx , source= s_1 , target= e_1))
-    path_l.sort()
-    path_n.sort()
-
-    if ( len(path_n) >= 5) : 
-        print(path_l)
-        print(path_n)
-
-    assert(path_l == path_n)
-    i = i + 1  
-
-
-
-    # gen_edge -> (a,b) -> 
+    # print(f"Local usage ={t2 - t1}, networkx usage = {t3 - t2}"  )
+    print( l == l_ )
+    c  =  c + 1 
+print(time_l/10 ,time_n/10)

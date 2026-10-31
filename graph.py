@@ -7,9 +7,11 @@ class Graph :
     # nodes : set , edges : {type of node : set(type of node)} , weights : { (s , e) : num } 
     def __init__(self, nodes = None , edges = None, directed = True, weights = None ,  weighted = False) -> None:
         self.__nodes__ = set(nodes) if nodes is not None else set()
-
-        # self.__edges__ = {s: set(ends) for s, ends in edges.items()} if edges is not None else {}
         self.__edges__ = {} 
+
+        # 保证nodes全部出现在edges中
+        for s in self.__nodes__ : 
+            self.__edges__[s] = set() 
 
         if edges is not None : 
             for k,v in edges.items() : 
@@ -21,9 +23,6 @@ class Graph :
                 raise RuntimeError("weights 为空且 weighted 矛盾")
             else :
                 self.__weights__ = dict(weights)
-                # 现在检查是否对所有边都有权重定义，
-                # 没有权重定义的默认设0
-                # 仅允许在 __init__ 中补默认值
                 for start, ends in self.__edges__.items():
                     for end in ends:
                         if (start, end) not in self.__weights__:
@@ -74,17 +73,21 @@ class Graph :
         self.__directed__ = False
          
     def __str__(self) -> str:
+        # 由于 __init__ 已保证每个 node 都有 key，这里直接遍历 __nodes__
         lines = []
-        for start in sorted(set(self.__nodes__) | set(self.__edges__)):
-            ends = sorted(self.__edges__.get(start, ()))
+        for start in sorted(self.get_all_nodes()):
+            ends = sorted(self.__edges__[start])
+
             if not ends:
                 # 孤立节点没有出边，按 100 -> None 打印
                 lines.append(f"{start} -> None")
                 continue
-            if self.__weighted__:
-                items = [f"{end}({self.__weights__.get((start, end))})" for end in ends]
+
+            if self.is_weighted():
+                items = [f"{end}({self.get_edge_weight(start, end)})" for end in ends]
             else:
                 items = [str(end) for end in ends]
+
             lines.append(f"{start} -> " + " , ".join(items))
         return "\n".join(lines)
 
@@ -100,6 +103,9 @@ class Graph :
 
     def add_node(self,node ) -> None: 
         self.__nodes__.add(node)
+        # 保证每个节点在 __edges__ 中有 key；已存在的节点不能清空出边，
+        # 否则 add_edge 内部调用 add_node 时会把刚加的边抹掉
+        self.__edges__.setdefault(node, set())
 
     def delete_node(self,node ) -> None: 
         # 删除节点 
@@ -118,7 +124,29 @@ class Graph :
         # 否则 __str__ 的 nodes | edges 并集会打出一个已删除的节点
         self.__edges__.pop(node, None)
         self.__nodes__.discard(node)
+    def get_all_nodes(self) -> set : 
+        res = {s for s in self.__nodes__}
+        return res
 
+    def is_weighted(self) -> bool : 
+        return self.__weighted__
+    def is_directed(self) -> bool : 
+        return self.__directed__
+
+    def get_all_weights(self) -> dict | None : 
+        if self.is_weighted() : 
+            weights = dict(self.__weights__) 
+        else: 
+            weights =  None
+        return weights
+
+    def get_all_edges(self) -> dict : 
+        edges = {
+                start_: set(ends)
+                for start_, ends in
+                self.__edges__.items()
+                }
+        return edges
     
     def delete_edge(self,edge : tuple) -> None: 
         # 删除边
@@ -156,7 +184,7 @@ class Graph :
             return None
         
 
-    def to_node(self, end)  -> set : 
+    def to_node(self, end)  -> set | None: 
         # 获取指向end的所有节点， end不在图中，返回None，end没有指向的节点则返回空集合
         # 有权图：返回二元组集合， 第一个元素是起点，第二个元素是权
         # 无权图：返回节点集合
@@ -172,7 +200,7 @@ class Graph :
                 result.add(start)
         return result
         
-    def from_node(self, start) -> set :
+    def from_node(self, start) -> set | None :
         # 获取从start开始的所有节点， start不在图中，返回None，start没有指向的节点则返回空集合
         # 有权图：返回二元组集合， 第一个元素是终点，第二个元素是权
         # 无权图：返回节点集合
