@@ -1,3 +1,8 @@
 .workbuddy
+.codebuddy
 roadmap.md
 __pycache__/
+TestFiles
+*.pdf
+*.docx
+报告*.md

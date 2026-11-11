@@ -63,8 +63,9 @@ def pre_process(g : graph.Graph ,  start , end) -> graph.Graph :
     return res_new
     
 def find_all_path(start,  end , g : graph.Graph) -> list[list]:
+
+
     # 传入已经预处理的图，并且找到起点和重点之间的所有路径
-    # 预处理已经将所有点处理完毕， 每个点至少在一个路径上
     # 回溯dfs
     allpath = []
     nodes =g.get_all_nodes()
@@ -81,26 +82,33 @@ def find_all_path(start,  end , g : graph.Graph) -> list[list]:
     # 栈代替递归，省掉函数调用
     stack = [iter(adj[start])]
     while stack:
-        nxt = next(stack[-1], None)
-        if nxt is None:
+        nt = next(stack[-1], None)
+
+        # nt节点迭代完仍然没有找到end
+        if nt is None:
             stack.pop()
             on_path.discard(path.pop())
             continue
 
-        if nxt in on_path:
+        # 环
+        if nt in on_path:
             continue
 
-        if nxt == end:
+        # 找到end
+        if nt == end:
             allpath.append(path + [end])
             continue
 
-        path.append(nxt)
-        on_path.add(nxt)
-        stack.append(iter(adj[nxt]))
+        path.append(nt)
+        on_path.add(nt)
+        stack.append(iter(adj[nt]))
 
     return allpath
 
 def find_with_preprocess(g , s ,e ) : 
+    # start == end 时，无论如何走总是环，应直接返回单节点路径
+    if s == e : 
+        return [[e]]
     ng = pre_process(g, s, e) 
     return find_all_path(s, e, ng)
 

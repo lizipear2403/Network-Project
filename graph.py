@@ -1,7 +1,6 @@
 # 定义图对象
 # 使用邻接链表
 
-import copy
 
 class Graph :
     # nodes : set , edges : {type of node : set(type of node)} , weights : { (s , e) : num } 
@@ -32,7 +31,6 @@ class Graph :
 
     def undirected(self) -> None : 
         # 将图置为undirected 
-        # 遍历一次edges , 创建边集合：二元组集合， 并且根据集合重建__edges__
         pair_weight = {}
         weights_src = self.__weights__ if self.__weighted__ else {}
         for start, ends in self.__edges__.items():
@@ -103,8 +101,6 @@ class Graph :
 
     def add_node(self,node ) -> None: 
         self.__nodes__.add(node)
-        # 保证每个节点在 __edges__ 中有 key；已存在的节点不能清空出边，
-        # 否则 add_edge 内部调用 add_node 时会把刚加的边抹掉
         self.__edges__.setdefault(node, set())
 
     def delete_node(self,node ) -> None: 
